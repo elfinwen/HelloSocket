@@ -1,4 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include <windows.h>
 #include <WinSock2.h>
 #include <stdio.h>
@@ -42,21 +44,55 @@ int main()
 	sockaddr_in clinetAddr = {};
 	int nAddrLen = sizeof(sockaddr_in);
 	SOCKET _cSock = INVALID_SOCKET;
+	char msgBuf[] = "Hello, I'm Server.\n";
 	_cSock = accept(_sock, (sockaddr*)&clinetAddr, &nAddrLen);
 	if (INVALID_SOCKET == _cSock)
 	{
 		printf("错误,接收到无效客户端SOCKET...\n");
 	}
-	// 5 send 向客户端发送一条数据
-	char msgBuf[] = "Hello, I'm Server.\n";
-	send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);
-	// 6 关闭套接字closesocket
+	printf("新客户端加入：socket = %d,IP = %s\n", (int)_cSock, inet_ntoa(clinetAddr.sin_addr));
+	
+	char _recvBuf[128] = {};
+	while (true)
+	{
+		//5 接收客户端的数据
+		int nLen = recv(_cSock, _recvBuf, 128, 0);
+		if (nLen <= 0)
+		{
+			printf("客户端已退出，任务结束。\n");
+			break;
+		}
+		printf("收到命令：%s\n", _recvBuf);
+		//6 处理请求
+		if (0 == strcmp(_recvBuf, "getName"))
+		{
+			//7 向客户端返回请求数据
+			memcpy(msgBuf, "xiao qiang.",sizeof("xiao qiang."));
+			send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);
+
+		}
+		else if (0 == strcmp(_recvBuf, "getAge"))
+		{
+			memcpy(msgBuf, "80.", sizeof("80."));
+			//7 向客户端返回请求数据
+			send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);
+		}
+		else
+		{
+			memcpy(msgBuf, "???.", sizeof("???."));
+			//7 向客户端返回请求数据
+			send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);
+
+		}
+	}
+	
+	// 8 关闭套接字closesocket
 	closesocket(_sock);
-
-
 	//----------------以上是socket网络通信部分
 	//清除Windows socket环境
 	WSACleanup();//与WSAStartup(...)是一一对应关系
+	printf("已退出，任务结束。\n");
+	getchar();
 
 	return 0;
 }
