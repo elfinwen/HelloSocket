@@ -7,6 +7,11 @@
 
 #pragma comment(lib,"ws2_32.lib")
 
+struct DataPackage
+{
+	int age;
+	char name[32];
+};
 
 int main()
 {
@@ -64,19 +69,22 @@ int main()
 		}
 		printf("收到命令：%s\n", _recvBuf);
 		//6 处理请求
-		if (0 == strcmp(_recvBuf, "getName"))
+		if (0 == strcmp(_recvBuf, "getInfo"))
 		{
+			
 			//7 向客户端返回请求数据
-			memcpy(msgBuf, "xiao qiang.",sizeof("xiao qiang."));
-			send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);
+			DataPackage dp = { 80, "小强" };
+			send(_cSock,(const char*)&dp, sizeof(DataPackage), 0);
+	/*		memcpy(msgBuf, "xiao qiang.",sizeof("xiao qiang."));
+			send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);*/
 
 		}
-		else if (0 == strcmp(_recvBuf, "getAge"))
-		{
-			memcpy(msgBuf, "80.", sizeof("80."));
-			//7 向客户端返回请求数据
-			send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);
-		}
+		//else if (0 == strcmp(_recvBuf, "getAge"))
+		//{
+		//	memcpy(msgBuf, "80.", sizeof("80."));
+		//	//7 向客户端返回请求数据
+			//send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);
+		//}
 		else
 		{
 			memcpy(msgBuf, "???.", sizeof("???."));

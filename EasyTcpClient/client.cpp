@@ -5,7 +5,11 @@
 
 #pragma comment(lib,"ws2_32.lib")
 
-
+struct DataPackage
+{
+	int age;
+	char name[32];
+};
 int main()
 {
 	//启动Windows socket 2.x环境
@@ -61,7 +65,8 @@ int main()
 		int nlen = recv(_sock, recvBuf, 256, 0);
 		if (nlen > 0)
 		{
-			printf("客户端接收到数据：%s\n", recvBuf);
+			DataPackage* dp = (DataPackage*)recvBuf;
+			printf("客户端接收到数据：年龄=%d ，姓名=%s\n", dp->age, dp->name);
 		}
 	}
 	
