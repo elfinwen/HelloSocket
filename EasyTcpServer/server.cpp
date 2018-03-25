@@ -6,12 +6,37 @@
 #include <stdio.h>
 
 #pragma comment(lib,"ws2_32.lib")
-
-struct DataPackage
+enum CMD
 {
-	int age;
-	char name[32];
+	CMD_LOGIN,
+	CMD_LOGINOUT,
+	CMD_ERROR
 };
+struct DataHeader
+{
+	short dataLength;	//数据长度
+	short cmd;			//命令
+};
+//DataPackage
+struct Login
+{
+	char userName[32];
+	char passWord[32];
+};
+struct LoginResult
+{
+	int result;
+};
+struct Logout
+{
+	char userName[32];
+
+};
+struct LogoutResult
+{
+	int result;
+};
+
 
 int main()
 {
@@ -57,40 +82,48 @@ int main()
 	}
 	printf("新客户端加入：socket = %d,IP = %s\n", (int)_cSock, inet_ntoa(clinetAddr.sin_addr));
 	
-	char _recvBuf[128] = {};
+	
 	while (true)
 	{
+		DataHeader header = {};
 		//5 接收客户端的数据
-		int nLen = recv(_cSock, _recvBuf, 128, 0);
+		int nLen = recv(_cSock, (char*)&header, sizeof(DataHeader), 0);
 		if (nLen <= 0)
 		{
 			printf("客户端已退出，任务结束。\n");
 			break;
 		}
-		printf("收到命令：%s\n", _recvBuf);
+		printf("收到命令：%d  数据长度：%d\n", header.cmd, header.dataLength);
 		//6 处理请求
-		if (0 == strcmp(_recvBuf, "getInfo"))
+		switch (header.cmd)
 		{
-			
-			//7 向客户端返回请求数据
-			DataPackage dp = { 80, "小强" };
-			send(_cSock,(const char*)&dp, sizeof(DataPackage), 0);
-	/*		memcpy(msgBuf, "xiao qiang.",sizeof("xiao qiang."));
-			send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);*/
+			case CMD_LOGIN:
+			{
+				Login login = {};
+				recv(_cSock, (char*)&login, sizeof(Login), 0);
+				//忽略判断用户名密码是否正常的过程
+				LoginResult ret = {1};
+				send(_cSock, (char*)&header, sizeof(DataHeader), 0);
+				send(_cSock, (char*)&ret, sizeof(LoginResult), 0);
+			}
+			break;
+			case CMD_LOGINOUT:
+			{
+				Logout logout = {};
+				recv(_cSock, (char*)&logout, sizeof(Logout), 0);
+				//忽略判断用户名密码是否正常的过程
+				LogoutResult ret = {1};
+				send(_cSock, (char*)&header, sizeof(DataHeader), 0);
+				send(_cSock, (char*)&ret, sizeof(LoginResult), 0);
 
-		}
-		//else if (0 == strcmp(_recvBuf, "getAge"))
-		//{
-		//	memcpy(msgBuf, "80.", sizeof("80."));
-		//	//7 向客户端返回请求数据
-			//send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);
-		//}
-		else
-		{
-			memcpy(msgBuf, "???.", sizeof("???."));
-			//7 向客户端返回请求数据
-			send(_cSock, msgBuf, strlen(msgBuf) + 1, 0);
+			}
+			break;
 
+		default:
+			header.cmd = CMD_ERROR;
+			header.dataLength = 0;
+			send(_cSock, (char*)&header, sizeof(DataHeader), 0);
+			break;
 		}
 	}
 	
