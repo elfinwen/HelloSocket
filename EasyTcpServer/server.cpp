@@ -152,14 +152,15 @@ int main()
 	while (true)
 	{
 		//伯克利socket 
-		fd_set fdRead;
+		fd_set fdRead;//fd_set最多同时处理64个socket  因为 #define FD_SETSIZE  64 （F12查看fd_set）
 		fd_set fdWrite;
 		fd_set fdExp;
-		//FD_ZERO 清空
+		///FD_ZERO 清空：指定的文件描述符集清空，在对文件描述符集合进行设置前，必须对其进行初始化，如果不清空，
+		///由于在系统分配内存空间后，通常并不作清空处理，所以结果是不可知的
 		FD_ZERO(&fdRead);
 		FD_ZERO(&fdWrite);
 		FD_ZERO(&fdExp);
-
+		///FD_SET用于在文件描述符集合中增加一个新的文件描述符
 		FD_SET(_sock, &fdRead);
 		FD_SET(_sock, &fdWrite);
 		FD_SET(_sock, &fdExp);
@@ -169,19 +170,24 @@ int main()
 			FD_SET(g_clients[n], &fdRead);
 		}
 
+		
 		///select函数第一个参数nfds 是一个整数值  是指fd_set集合中所有描述符（socket）的范围，而不是数量。
 		///即是所有文件描述符最大值+1  在Windows中这个参数可以写0（因为windows中已经处理了）即windows中可
 		///以写成select(0, &fdRead, &fdWrite, &fdExp, NULL)。
 		///该值主要对非windows有意义 如linux等
-		int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExp, NULL);
+		///select函数最后一个参数为timeout为NULL,为阻塞模式;为0,则是非阻塞的（非阻塞：仅检测描述符集合的状态，然后立即返回，并不
+		///等待外部事件的发生）；timeout所指向的结构设为非零时间（等待固定时间：如果在指定的时间段里有事件发生或者时间耗尽，函数均返回）
+		timeval t = { 0,0 };
+		int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExp, &t/*NULL*/);
 		if (ret < 0)
 		{
 			printf("select任务结束。\n");
 			break;
 		}
+		///FD_ISSET用于测试指定的文件描述符是否在该集合中
 		if (FD_ISSET(_sock, &fdRead))//集合中有没有我
 		{
-			FD_CLR(_sock, &fdRead);
+			FD_CLR(_sock, &fdRead); ///FD_CLR 用于在文件描述符集合中删除一个文件描述符
 			// 4 accept 等待接收客户端连接
 			sockaddr_in clinetAddr = {};
 			int nAddrLen = sizeof(sockaddr_in);
