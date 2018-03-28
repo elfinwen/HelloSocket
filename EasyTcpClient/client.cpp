@@ -93,22 +93,14 @@ int processor(SOCKET _cSock)
 	{
 		recv(_cSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
 		LoginResult* loginresult = (LoginResult*)szRecv;
-<<<<<<< HEAD
 		printf("收到服务端消息：CMD_LOGIN_RESULT,数据长度：%d\n", header->dataLength);
-=======
-		printf("收到服务端消息：CMD_LOGIN_RESULT,数据长度：%d\n", _cSock, header->dataLength);
->>>>>>> 84ed64739fc6db88a55ffb51676f22e01f2b876e
 	}
 	break;
 	case CMD_LOGOUT_RESULT:
 	{
 		recv(_cSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
 		LogoutResult* logoutresult = (LogoutResult*)szRecv;
-<<<<<<< HEAD
 		printf("收到服务端消息：CMD_LOGOUT_RESULT,数据长度：%d\n", header->dataLength);
-=======
-		printf("收到服务端消息：CMD_LOGOUT_RESULT,数据长度：%d\n", _cSock, header->dataLength);
->>>>>>> 84ed64739fc6db88a55ffb51676f22e01f2b876e
 	}
 	break;
 	case CMD_NEW_USER_JOIN:
@@ -131,7 +123,6 @@ int processor(SOCKET _cSock)
 	return 0;
 
 }
-<<<<<<< HEAD
 bool g_bRun = true;
 void cmdThread(SOCKET sock)
 {
@@ -165,8 +156,6 @@ void cmdThread(SOCKET sock)
 	}
 }
 
-=======
->>>>>>> 84ed64739fc6db88a55ffb51676f22e01f2b876e
 int main()
 {
 	//启动Windows socket 2.x环境
@@ -208,11 +197,7 @@ int main()
 		fd_set fdReads;
 		FD_ZERO(&fdReads);
 		FD_SET(_sock, &fdReads);
-<<<<<<< HEAD
 		timeval t = {1,0}/*{0,0}*/;
-=======
-		timeval t = /*{ 1, 0 }*/{0,0};
->>>>>>> 84ed64739fc6db88a55ffb51676f22e01f2b876e
 		int ret = select(_sock, &fdReads, 0, 0, &t);
 		if (ret < 0)
 		{
@@ -229,20 +214,6 @@ int main()
 				break;
 			}
 		}
-<<<<<<< HEAD
-
-		//printf("空闲时间处理其他业务..\n");
-		
-=======
-		
-		printf("空闲时间处理其他业务..\n");
-		Login login;
-		strcpy(login.userName, "lyc");
-		strcpy(login.passWord, "lycmm");
-		send(_sock,(const char*)&login, sizeof(Login), 0);
-		//Sleep(1000);
->>>>>>> 84ed64739fc6db88a55ffb51676f22e01f2b876e
-
 	}
 	
 	// 7 关闭套接字closesocket

@@ -183,29 +183,20 @@ int main()
 			FD_SET(g_clients[n], &fdRead);
 		}
 
-		
 		///select函数第一个参数nfds 是一个整数值  是指fd_set集合中所有描述符（socket）的范围，而不是数量。
 		///即是所有文件描述符最大值+1  在Windows中这个参数可以写0（因为windows中已经处理了）即windows中可
 		///以写成select(0, &fdRead, &fdWrite, &fdExp, NULL)。
 		///该值主要对非windows有意义 如linux等
 		///select函数最后一个参数为timeout为NULL,为阻塞模式;为0,则是非阻塞的（非阻塞：仅检测描述符集合的状态，然后立即返回，并不
 		///等待外部事件的发生）；timeout所指向的结构设为非零时间（等待固定时间：如果在指定的时间段里有事件发生或者时间耗尽，函数均返回）
-<<<<<<< HEAD
 		timeval t = {1,0} /*{ 0,0 }*/;//第一个值1，表示最大的时间值为1秒，并不是说他一定要等到1秒
-=======
-		timeval t = /*{1,0}*/ { 0,0 };//第一个值1，表示最大的时间值为1秒，并不是说他一定要等到1秒
->>>>>>> 84ed64739fc6db88a55ffb51676f22e01f2b876e
 		int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExp, &t/*NULL*/);
 		if (ret < 0)
 		{
 			printf("select任务结束。\n");
 			break;
 		}
-<<<<<<< HEAD
 		//FD_ISSET：判断描述符_sock是否在描述符集合fdRead中
-=======
-		///FD_ISSET用于测试指定的文件描述符是否在该集合中
->>>>>>> 84ed64739fc6db88a55ffb51676f22e01f2b876e
 		if (FD_ISSET(_sock, &fdRead))//集合中有我
 		{
 			FD_CLR(_sock, &fdRead); ///FD_CLR 用于在文件描述符集合中删除一个文件描述符
@@ -219,7 +210,6 @@ int main()
 			{
 				printf("错误,接收到无效客户端SOCKET...\n");
 			}
-<<<<<<< HEAD
 			else
 			{
 				for (int n = (int)g_clients.size() - 1; n >= 0; n--)
@@ -230,17 +220,6 @@ int main()
 				g_clients.push_back(_cSock);
 				printf("新客户端加入：socket = %d,IP = %s\n", (int)_cSock, inet_ntoa(clinetAddr.sin_addr));
 			}
-			
-=======
-			for (int n = (int)g_clients.size() - 1; n >= 0; n--)
-			{
-				NewUserJoin userJoin;
-				send(g_clients[n], (const char*)&userJoin,sizeof(NewUserJoin),0 );
-			}
-			g_clients.push_back(_cSock);
-			printf("新客户端加入：socket = %d,IP = %s\n", (int)_cSock, inet_ntoa(clinetAddr.sin_addr));
->>>>>>> 84ed64739fc6db88a55ffb51676f22e01f2b876e
-			
 		}
 		for (size_t n = 0; n < fdRead.fd_count; n++)
 		{
@@ -253,12 +232,6 @@ int main()
 				}
 			}
 		}
-
-<<<<<<< HEAD
-		//printf("空闲时间处理其他业务..\n");
-=======
-		printf("空闲时间处理其他业务..\n");
->>>>>>> 84ed64739fc6db88a55ffb51676f22e01f2b876e
 	}
 
 	// 8 关闭套接字closesocket
