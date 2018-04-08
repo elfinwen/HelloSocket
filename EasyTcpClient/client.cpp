@@ -243,5 +243,6 @@ int main()
 #endif
 	printf("ÒÑÍË³ö\n");
 	getchar();
+
 	return 0;
 }
