@@ -35,6 +35,7 @@ void cmdThread(EasyTcpClient *client)
 
 int main()
 {
+	//同时与多个服务端通信连接
 	EasyTcpClient client1;
 	client1.Connect("127.0.0.1", 4567);//192.168.74.1
 
