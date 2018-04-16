@@ -20,8 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D232FF39-BDBA-4F05-B6E3-5A81C012734F}</ProjectGuid>
-    <RootNamespace>EasyTcpServer</RootNamespace>
+    <ProjectGuid>{1EFCDCE8-FF81-4519-92E6-E25ABA3F58C9}</ProjectGuid>
+    <RootNamespace>HelloThread</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -130,11 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="server.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="EasyTcpServer.hpp" />
-    <ClInclude Include="MessageHeader.hpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

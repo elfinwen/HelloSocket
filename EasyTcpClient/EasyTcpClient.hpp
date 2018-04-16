@@ -20,7 +20,9 @@
 
 class EasyTcpClient
 {
+private:
 	SOCKET _sock;
+
 public:
 	EasyTcpClient()
 	{
@@ -93,6 +95,7 @@ public:
 	{
 		if (_sock != INVALID_SOCKET)
 		{
+			_sock = INVALID_SOCKET;
 #ifdef _WIN32
 			// 7 关闭套接字closesocket
 			closesocket(_sock);
@@ -159,7 +162,7 @@ public:
 		return 0;
 	}
 	//响应网络消息
-	void OnNetMsg(DataHeader* header)
+	virtual void OnNetMsg(DataHeader* header)
 	{
 		switch (header->cmd)
 		{
@@ -194,7 +197,7 @@ public:
 		return SOCKET_ERROR;
 	}
 
-private:
+
 
 };
 
