@@ -53,11 +53,11 @@ public:
 		_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (INVALID_SOCKET == _sock)
 		{
-			printf("错误，客户端建立Socket失败...\n");
+			printf("错误，建立Socket失败...\n");
 		}
 		else
 		{
-			printf("客户端建立Socket<%d>成功...\n", _sock);
+			printf("建立Socket<%d>成功...\n", _sock);
 		}
 	}
 	//连接服务器
@@ -76,15 +76,15 @@ public:
 #else
 		_sin.sin_addr.s_addr = inet_addr(ip);
 #endif
-		//printf("<socket=%d>正在连接服务器<%s:%d>成功...\n", _sock, ip, port);
+		printf("<socket=%d>正在连接服务器<%s:%d>成功...\n", _sock, ip, port);
 		int ret = connect(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in));
 		if (SOCKET_ERROR == ret)
 		{
-			printf("<socket=%d>错误,客户端连接服务器<%s:%d>失败...\n", _sock, ip , port);
+			printf("<socket=%d>错误,连接服务器<%s:%d>失败...\n", _sock, ip , port);
 		}
 		else
 		{
-			printf("<socket=%d>客户端连接服务器<%s:%d>成功...\n", _sock, ip, port);
+			printf("<socket=%d>连接服务器<%s:%d>成功...\n", _sock, ip, port);
 		}
 		return ret;
 
@@ -109,6 +109,7 @@ public:
 	}
 	
 	//处理查询网络消息
+	int _nCount = 0;
 	bool OnRun()
 	{
 		if (isRun())
@@ -118,6 +119,7 @@ public:
 			FD_SET(_sock, &fdReads);
 			timeval t = /*{ 1,0 }*/{0,0};
 			int ret = select(_sock + 1, &fdReads, 0, 0, /*NULL*/&t);
+			//printf("select ret = %d   count = %d\n", ret, _nCount++);
 			if (ret < 0)
 			{
 				printf("<socket=%d>select任务结束1\n", _sock);
@@ -144,21 +146,31 @@ public:
 	{
 		return _sock != INVALID_SOCKET;
 	}
+	//缓冲区最小单元大小
+#ifndef RECV_BUFF_SIZE
+#define RECV_BUFF_SIZE 10240
+#endif	// !RECV_BUFF_SIZE
+	//接收缓冲区
+	char _szRecv[RECV_BUFF_SIZE] = {};//双缓冲
+	//第二缓冲区 消息缓冲区
+	char _szMsgBuf[RECV_BUFF_SIZE*10] = {};
+	//消息缓冲区的数据尾部位置
+	int _lastPos = 0;
 	//接收数据 处理粘包 拆分包
-	int RecvData(SOCKET _cSock)
+	int RecvData(SOCKET cSock)
 	{
-		//缓冲区
-		char szRecv[1024] = {};
-		//5 接收客户端的数据
-		int nLen = (int)recv(_cSock, szRecv, sizeof(DataHeader), 0);
-		DataHeader* header = (DataHeader*)szRecv;
+		//5 接收数据
+		int nLen = (int)recv(cSock, _szRecv, RECV_BUFF_SIZE/*sizeof(DataHeader)*/, 0);
+		//printf("nLen = %d\n", nLen);
 		if (nLen <= 0)
 		{
-			printf("<socket=%d>与服务器断开连接，任务结束。\n", _cSock);
+			printf("<socket=%d>与服务器断开连接，任务结束。\n", cSock);
 			return -1;
 		}
-		recv(_cSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
-		OnNetMsg(header);
+		//将收取的数据拷贝消息缓冲区
+		memcpy(_szMsgBuf+ _lastPos, _szRecv, nLen);
+		
+	
 		return 0;
 	}
 	//响应网络消息
@@ -169,21 +181,30 @@ public:
 			case CMD_LOGIN_RESULT:
 			{
 				LoginResult* login = (LoginResult*)header;
-				printf("<socket=%d>收到服务端消息：CMD_LOGIN_RESULT,数据长度：%d\n", _sock, login->dataLength);
+				//printf("<socket=%d>收到服务端消息：CMD_LOGIN_RESULT,数据长度：%d\n", _sock, login->dataLength);
 			}
 			break;
 			case CMD_LOGOUT_RESULT:
 			{
 				LogoutResult* logout = (LogoutResult*)header;
-				printf("<socket=%d>收到服务端消息：CMD_LOGOUT_RESULT,数据长度：%d\n", _sock, logout->dataLength);
+				//printf("<socket=%d>收到服务端消息：CMD_LOGOUT_RESULT,数据长度：%d\n", _sock, logout->dataLength);
 			}
 			break;
 			case CMD_NEW_USER_JOIN:
 			{
 				NewUserJoin* userjoin = (NewUserJoin*)header;
-				printf("<socket=%d>收到服务端消息：CMD_NEW_USER_JOIN,数据长度：%d\n", _sock, userjoin->dataLength);
+				//printf("<socket=%d>收到服务端消息：CMD_NEW_USER_JOIN,数据长度：%d\n", _sock, userjoin->dataLength);
 			}
 			break;
+			case CMD_ERROR:
+			{
+				printf("<socket=%d>收到服务端消息：CMD_ERROR,数据长度：%d\n", _sock, header->dataLength);
+			}
+			break;
+			default:
+			{
+				printf("<socket=%d>收到未定义消息,数据长度：%d\n", _sock, header->dataLength);
+			}
 		}
 	}
 

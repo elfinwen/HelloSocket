@@ -1,7 +1,8 @@
 #include "EasyTcpClient.hpp"
 #include <thread>
 
-void cmdThread(EasyTcpClient *client)
+bool g_bRun = true;
+void cmdThread()
 {
 	while (true)
 	{
@@ -9,22 +10,9 @@ void cmdThread(EasyTcpClient *client)
 		scanf("%s", cmdBuf);
 		if (0 == strcmp(cmdBuf, "exit"))
 		{
-			client->Close();
+			g_bRun = false;
 			printf("退出cmdThread线程\n");
 			break;
-		}
-		else if (0 == strcmp(cmdBuf, "login"))
-		{
-			Login login;
-			strcpy(login.userName, "lyc");
-			strcpy(login.passWord, "lydmm");
-			client->SendData(&login);
-		}
-		else if (0 == strcmp(cmdBuf, "logout"))
-		{
-			Logout logout;
-			strcpy(logout.userName, "lyc");
-			client->SendData(&logout);
 		}
 		else
 		{
@@ -35,20 +23,34 @@ void cmdThread(EasyTcpClient *client)
 
 int main()
 {
-	//同时与多个服务端通信连接
-	EasyTcpClient client1;
-	client1.Connect("127.0.0.1", 4567);//192.168.74.1
+	const int cCount = FD_SETSIZE-1;
+	EasyTcpClient* client[cCount];
+	for (int n = 0; n < cCount; n++)
+	{
+		client[n] = new EasyTcpClient();
+		client[n]->Connect("127.0.0.1", 4567);//192.168.74.1
+	}
 
 	//启动UI线程
-	std::thread t1(cmdThread, &client1);
+	std::thread t1(cmdThread);
 	t1.detach();//与主线程分离
-	
-	while (client1.isRun())
-	{
-		client1.OnRun();
-	}
-	client1.Close();
 
+	Login login;
+	strcpy(login.userName, "lyc");
+	strcpy(login.passWord, "lydmm");
+	while (g_bRun)
+	{
+		for (int n = 0; n < cCount; n++)
+		{
+			client[n]->SendData(&login);
+			client[n]->OnRun();
+		}
+	}
+	for (int n = 0; n < cCount; n++)
+	{
+		client[n]->Close();
+	}
+	
 	printf("已退出\n");
 	getchar();
 	return 0;
