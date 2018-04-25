@@ -2,6 +2,7 @@
 #define _EasyTcpServer_hpp_
 
 #ifdef _WIN32
+	#define FD_SETSIZE      10240 //本句要放在#include <WinSock2.h>之前。因为<WinSock2.h>中有表示，如果没有定义FD_SETSIZE，则 #define FD_SETSIZE 64
 	#define WIN32_LEAN_AND_MEAN
 	#define _WINSOCK_DEPRECATED_NO_WARNINGS
 	#include <windows.h>
@@ -21,10 +22,11 @@
 //#include <thread>
 #include <vector>
 #include "MessageHeader.hpp"
+#include "CELLTimestamp.hpp"
 
 //缓冲区最小单元大小
 #ifndef RECV_BUFF_SIZE
-#define RECV_BUFF_SIZE 10240
+#define RECV_BUFF_SIZE 10240 //10k
 #endif	// !RECV_BUFF_SIZE
 
 class ClientSocket 
@@ -69,10 +71,13 @@ class EasyTcpServer
 private:
 	SOCKET _sock;
 	std::vector<ClientSocket*> _clients;
+	CELLTimestamp _tTime;
+	int _recvCount;
 public:
 	EasyTcpServer()
 	{
 		_sock = INVALID_SOCKET;
+		_recvCount = 0;
 	}
 	virtual ~EasyTcpServer()
 	{
@@ -182,10 +187,10 @@ public:
 		}
 		else
 		{
-			NewUserJoin userJoin;
-			SendDataToAll(&userJoin);
+			//NewUserJoin userJoin;
+			//SendDataToAll(&userJoin);
 			_clients.push_back(new ClientSocket(cSock));
-			printf("<socket=%d>新客户端加入：socket = %d,IP = %s\n", (int)_sock, (int)cSock, inet_ntoa(clinetAddr.sin_addr));
+			//printf("<socket=%d>新客户端<%d>加入：socket = %d,IP = %s\n", (int)_sock, _clients.size(), (int)cSock, inet_ntoa(clinetAddr.sin_addr));
 		}
 		return (int)cSock;
 	}
@@ -271,6 +276,7 @@ public:
 			{
 				FD_CLR(_sock, &fdRead); ///FD_CLR 用于在文件描述符集合中删除一个文件描述符
 				Accept();
+				return true;
 
 			}
 			for (int n = (int)_clients.size() - 1; n >= 0; n--)
@@ -348,6 +354,14 @@ public:
 	//响应网络消息
 	virtual void OnNetMsg(SOCKET cSock, DataHeader* header)
 	{
+		_recvCount++;
+		auto t1 = _tTime.getElapsedSecond();
+		if (t1 >= 1.0)
+		{
+			printf("time<%lf>,socket<%d>,clients<%d>,_recvCount<%d>\n", t1, _sock, _clients.size(),_recvCount);
+			_recvCount = 0;
+			_tTime.update();
+		}
 		//6 处理请求
 		switch (header->cmd)
 		{
@@ -356,8 +370,8 @@ public:
 				Login* login = (Login*)header;
 				//printf("收到客户端<SOCKET=%d>请求：CMD_LOGIN,数据长度：%d,userName=%s,passWord = %s\n", _cSock, login->dataLength, login->userName, login->passWord);
 				//忽略判断用户名密码是否正常的过程
-				LoginResult ret;
-				SendData(cSock, &ret);
+				/*LoginResult ret;
+				SendData(cSock, &ret);*/
 			}
 			break;
 			case CMD_LOGOUT:
@@ -365,8 +379,8 @@ public:
 				Logout* logout = (Logout*)header;
 				//printf("收到客户端<SOCKET=%d>请求：CMD_LOGOUT,数据长度：%d,userName=%s\n", cSock, logout->dataLength, logout->userName);
 				//忽略判断用户名密码是否正常的过程
-				LogoutResult ret;
-				SendData(cSock, &ret);
+				/*LogoutResult ret;
+				SendData(cSock, &ret);*/
 			}
 			break;
 			default:

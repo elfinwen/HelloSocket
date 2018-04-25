@@ -57,7 +57,7 @@ public:
 		}
 		else
 		{
-			printf("建立Socket<%d>成功...\n", _sock);
+			//printf("建立Socket<%d>成功...\n", _sock);
 		}
 	}
 	//连接服务器
@@ -76,7 +76,7 @@ public:
 #else
 		_sin.sin_addr.s_addr = inet_addr(ip);
 #endif
-		printf("<socket=%d>正在连接服务器<%s:%d>成功...\n", _sock, ip, port);
+		//printf("<socket=%d>正在连接服务器<%s:%d>成功...\n", _sock, ip, port);
 		int ret = connect(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in));
 		if (SOCKET_ERROR == ret)
 		{
@@ -84,7 +84,7 @@ public:
 		}
 		else
 		{
-			printf("<socket=%d>连接服务器<%s:%d>成功...\n", _sock, ip, port);
+			//printf("<socket=%d>连接服务器<%s:%d>成功...\n", _sock, ip, port);
 		}
 		return ret;
 
@@ -160,7 +160,7 @@ public:
 	int RecvData(SOCKET cSock)
 	{
 		//5 接收数据
-		int nLen = (int)recv(cSock, _szRecv, RECV_BUFF_SIZE/*sizeof(DataHeader)*/, 0);
+		int nLen = (int)recv(cSock, _szRecv, RECV_BUFF_SIZE, 0);
 		//printf("nLen = %d\n", nLen);
 		if (nLen <= 0)
 		{
