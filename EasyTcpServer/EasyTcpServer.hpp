@@ -2,7 +2,7 @@
 #define _EasyTcpServer_hpp_
 
 #ifdef _WIN32
-	#define FD_SETSIZE      10240 //本句要放在#include <WinSock2.h>之前。因为<WinSock2.h>中有表示，如果没有定义FD_SETSIZE，则 #define FD_SETSIZE 64
+	#define FD_SETSIZE      4024 //本句要放在#include <WinSock2.h>之前。因为<WinSock2.h>中有表示，如果没有定义FD_SETSIZE，则 #define FD_SETSIZE 64
 	#define WIN32_LEAN_AND_MEAN
 	#define _WINSOCK_DEPRECATED_NO_WARNINGS
 	#include <windows.h>
