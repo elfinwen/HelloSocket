@@ -28,6 +28,8 @@ int main()
 	server.InitSocket();
 	server.Bind(nullptr, 4567);
 	server.Listen(5);
+	server.Start();
+
 
 	//Æô¶¯UIÏß³Ì
 	std::thread t1(cmdThread);
