@@ -148,7 +148,6 @@ public:
 	}
 
 	//处理网络消息
-	//int _nCount = 0;
 	bool OnRun()
 	{
 		while (isRun())
@@ -232,6 +231,7 @@ public:
 	{
 		// 5 接收客户端数据
 		int nLen = (int)recv(pClient->sockfd(), _szRecv, RECV_BUFF_SZIE, 0);
+		//printf("nLen=%d\n", nLen);
 		if (nLen <= 0)
 		{
 			//printf("客户端<Socket=%d>已退出，任务结束。\n", pClient->sockfd());
@@ -271,17 +271,6 @@ public:
 	virtual void OnNetMsg(ClientSocket* pClient, DataHeader* header)
 	{
 		_pNetEvent->OnNetMsg(pClient, header);
-		
-	}
-
-	//发送指定Socket数据
-	int SendData(SOCKET cSock, DataHeader* header)
-	{
-		if (isRun() && header)
-		{
-			return send(cSock, (const char*)header, header->dataLength, 0);
-		}
-		return SOCKET_ERROR;
 	}
 
 	void addClient(ClientSocket* pClient)
@@ -317,7 +306,6 @@ private:
 	std::thread _thread;
 	//网络事件对象
 	INetEvent* _pNetEvent;
-	
 };
 
 //new 堆内存（堆内存：根据电脑的内存条大小决定，如2G ，4G，甚至更大）；没有通过new创建的（如  int a = 0 ），在栈空间上（C++的栈空间很小，一般只有1M~2M,根据系统
@@ -443,9 +431,9 @@ public:
 		}
 		else
 		{
-			//将新客户端分配各客户数量最少的cellServer
+			//将新客户端分配给客户数量最少的cellServer
 			addClientToCellServer(new ClientSocket(cSock));
-			//获取ip地址 inet_ntoa(clientAddr.sin_addr)
+			//获取IP地址 inet_ntoa(clientAddr.sin_addr)
 		}
 		return (int)cSock;
 	}
@@ -472,7 +460,7 @@ public:
 		{
 			auto ser = new CellServer(_sock);
 			_cellServers.push_back(ser);
-			//注册网络事件接收对象
+			//注册网络事件接受对象
 			ser->setEventObj(this);
 			//启动消息处理线程
 			ser->Start();
@@ -484,18 +472,15 @@ public:
 		if (_sock != INVALID_SOCKET)
 		{
 #ifdef _WIN32
-			
 			//关闭套节字closesocket
 			closesocket(_sock);
 			//------------
 			//清除Windows socket环境
 			WSACleanup();//与WSAStartup(...)是一一对应关系
 #else
-			
 			//关闭套节字closesocket
 			close(_sock);
 #endif
-			
 		}
 	}
 	//处理网络消息
@@ -528,7 +513,6 @@ public:
 			///等待外部事件的发生）；timeout所指向的结构设为非零时间（等待固定时间：如果在指定的时间段里有事件发生或者时间耗尽，函数均返回）
 			timeval t = { 0,10};//第一个值如果1，表示最大的时间值为1秒，并不是说他一定要等到1秒
 			int ret = select(_sock + 1, &fdRead, 0, 0, &t); //
-			//printf("select ret=%d count=%d\n", ret, _nCount++);
 			if (ret < 0)
 			{
 				printf("Accept Select任务结束。\n");

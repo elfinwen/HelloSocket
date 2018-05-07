@@ -44,7 +44,7 @@ void sendThread(int id)//2个线程id：1~2
 	}
 	printf("thread<%d>,Connect<begin=%d, end=%d>\n", id, begin, end);
 	std::chrono::milliseconds t(3000);//3000毫秒
-	std::this_thread::sleep_for(t);//本线程休眠5000毫秒
+	std::this_thread::sleep_for(t);//本线程休眠3000毫秒
 
 	Login login[10];
 	for (int n = 0; n < 10; n++)

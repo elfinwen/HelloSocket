@@ -20,6 +20,7 @@ struct DataHeader
 	short dataLength;	//数据长度
 	short cmd;			//命令
 };
+
 //DataPackage
 struct Login : public DataHeader
 {
@@ -45,7 +46,6 @@ struct LoginResult : public DataHeader
 	int result;
 	//char data[992];//1000-8=992
 	char data[92];
-
 };
 
 struct Logout : public DataHeader
@@ -56,8 +56,8 @@ struct Logout : public DataHeader
 		cmd = CMD_LOGOUT;
 	}
 	char userName[32];
-
 };
+
 struct LogoutResult : public DataHeader
 {
 	LogoutResult()
@@ -66,7 +66,6 @@ struct LogoutResult : public DataHeader
 		cmd = CMD_LOGOUT_RESULT;
 		result = 0;
 	}
-
 	int result;
 };
 
@@ -78,7 +77,7 @@ struct NewUserJoin : public DataHeader
 		cmd = CMD_NEW_USER_JOIN;
 		scok = 0;
 	}
-
-	int scok;//新用户的socket
+	int scok;
 };
-#endif//_MessageHeader_hpp_
+
+#endif // !_MessageHeader_hpp_

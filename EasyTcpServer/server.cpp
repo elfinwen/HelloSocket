@@ -1,4 +1,3 @@
-
 #include "EasyTcpServer.hpp"
 #include <thread>
 
@@ -25,6 +24,7 @@ void cmdThread()
 class MyServer : public EasyTcpServer
 {
 public:
+
 	//只会被一个线程触发 安全
 	virtual void OnNetJoin(ClientSocket* pClient)
 	{
@@ -78,15 +78,14 @@ private:
 
 };
 
-
 int main()
 {
+
 	MyServer server;
 	server.InitSocket();
 	server.Bind(nullptr, 4567);
 	server.Listen(5);
 	server.Start(4);//尽量不要超过CPU的真实核心数（双核--2 ；4核--4），可以去测试一下性能瓶颈在哪里
-
 
 	//启动UI线程
 	std::thread t1(cmdThread);
@@ -97,8 +96,7 @@ int main()
 		server.OnRun();
 	}
 	server.Close();
-	printf("已退出，任务结束。\n");
+	printf("已退出。\n");
 	getchar();
-
 	return 0;
 }

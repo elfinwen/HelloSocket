@@ -1,42 +1,38 @@
 #ifndef _EasyTcpClient_hpp_
-	#define _EasyTcpClient_hpp_
-	#ifdef _WIN32
-		#define WIN32_LEAN_AND_MEAN
-		#include <windows.h>
-		#include <WinSock2.h>
-		#pragma comment(lib,"ws2_32.lib")
-	#else
-		#include <unistd.h> //uni std
-		#include <arpa/inet.h>
-		#include <string.h>
+#define _EasyTcpClient_hpp_
 
-		#define SOCKET int
-		#define INVALID_SOCKET  (SOCKET)(~0)
-		#define SOCKET_ERROR            (-1)
-	#endif//_WIN32
-	#include <stdio.h>
-	#include "MessageHeader.hpp"
+#ifdef _WIN32
+	#define WIN32_LEAN_AND_MEAN
+	#include<windows.h>
+	#include<WinSock2.h>
+	#pragma comment(lib,"ws2_32.lib")
+#else
+	#include<unistd.h> //uni std
+	#include<arpa/inet.h>
+	#include<string.h>
 
+	#define SOCKET int
+	#define INVALID_SOCKET  (SOCKET)(~0)
+	#define SOCKET_ERROR            (-1)
+#endif
+#include <stdio.h>
+#include "MessageHeader.hpp"
 
 class EasyTcpClient
 {
-private:
 	SOCKET _sock;
 	bool _isConnect;
-
 public:
 	EasyTcpClient()
 	{
 		_sock = INVALID_SOCKET;
 		_isConnect = false;
 	}
-
-	//虚析构函数
+	
 	virtual ~EasyTcpClient()
 	{
 		Close();
 	}
-
 	//初始化socket
 	void InitSocket()
 	{
@@ -62,8 +58,9 @@ public:
 			//printf("建立Socket<%d>成功...\n", _sock);
 		}
 	}
+
 	//连接服务器
-	int Connect(const char* ip, unsigned short port)
+	int Connect(const char* ip,unsigned short port)
 	{
 		if (INVALID_SOCKET == _sock)
 		{
@@ -78,22 +75,20 @@ public:
 #else
 		_sin.sin_addr.s_addr = inet_addr(ip);
 #endif
-		//printf("<socket=%d>正在连接服务器<%s:%d>成功...\n", _sock, ip, port);
+		//printf("<socket=%d>正在连接服务器<%s:%d>...\n", _sock, ip, port);
 		int ret = connect(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in));
 		if (SOCKET_ERROR == ret)
 		{
-			printf("<socket=%d>错误,连接服务器<%s:%d>失败...\n", _sock, ip , port);
+			printf("<socket=%d>错误，连接服务器<%s:%d>失败...\n",_sock, ip, port);
 		}
-		else
-		{
+		else {
 			_isConnect = true;
-			//printf("<socket=%d>连接服务器<%s:%d>成功...\n", _sock, ip, port);
+			//printf("<socket=%d>连接服务器<%s:%d>成功...\n",_sock, ip, port);
 		}
 		return ret;
-
 	}
 
-	//关闭套接字closesocket
+	//关闭套节字closesocket
 	void Close()
 	{
 		if (_sock != INVALID_SOCKET)
@@ -107,12 +102,12 @@ public:
 #else
 			close(_sock);
 #endif
-			_sock = INVALID_SOCKET;	
+			_sock = INVALID_SOCKET;
 		}
 		_isConnect = false;
 	}
-	
-	//处理查询网络消息
+
+	//处理网络消息
 	bool OnRun()
 	{
 		if (isRun())
@@ -144,6 +139,7 @@ public:
 		}
 		return false;
 	}
+
 	//是否工作中
 	bool isRun()
 	{
@@ -159,23 +155,47 @@ public:
 	char _szMsgBuf[RECV_BUFF_SIZE*5] = {};
 	//消息缓冲区的数据尾部位置
 	int _lastPos = 0;
+
 	//接收数据 处理粘包 拆分包
 	int RecvData(SOCKET cSock)
 	{
-		//5 接收数据
+		// 5 接收数据
 		int nLen = (int)recv(cSock, _szRecv, RECV_BUFF_SIZE, 0);
-		//printf("nLen = %d\n", nLen);
+		//printf("nLen=%d\n", nLen);
 		if (nLen <= 0)
 		{
 			printf("<socket=%d>与服务器断开连接，任务结束。\n", cSock);
 			return -1;
 		}
-		//将收取的数据拷贝消息缓冲区
-		memcpy(_szMsgBuf+ _lastPos, _szRecv, nLen);
-		
-	
+		//将收取到的数据拷贝到消息缓冲区
+		memcpy(_szMsgBuf+_lastPos, _szRecv, nLen);
+		//消息缓冲区的数据尾部位置后移
+		_lastPos += nLen;
+		//判断消息缓冲区的数据长度大于消息头DataHeader长度
+		while (_lastPos >= sizeof(DataHeader))
+		{
+			//这时就可以知道当前消息的长度
+			DataHeader* header = (DataHeader*)_szMsgBuf;
+			//判断消息缓冲区的数据长度大于消息长度
+			if (_lastPos >= header->dataLength)
+			{
+				//消息缓冲区剩余未处理数据的长度
+				int nSize = _lastPos - header->dataLength;
+				//处理网络消息
+				OnNetMsg(header);
+				//将消息缓冲区剩余未处理数据前移
+				memcpy(_szMsgBuf, _szMsgBuf + header->dataLength, nSize);
+				//消息缓冲区的数据尾部位置前移
+				_lastPos = nSize;
+			}
+			else {
+				//消息缓冲区剩余数据不够一条完整消息
+				break;
+			}
+		}
 		return 0;
 	}
+
 	//响应网络消息
 	virtual void OnNetMsg(DataHeader* header)
 	{
@@ -183,6 +203,7 @@ public:
 		{
 			case CMD_LOGIN_RESULT:
 			{
+			
 				LoginResult* login = (LoginResult*)header;
 				//printf("<socket=%d>收到服务端消息：CMD_LOGIN_RESULT,数据长度：%d\n", _sock, login->dataLength);
 			}
@@ -195,8 +216,8 @@ public:
 			break;
 			case CMD_NEW_USER_JOIN:
 			{
-				NewUserJoin* userjoin = (NewUserJoin*)header;
-				//printf("<socket=%d>收到服务端消息：CMD_NEW_USER_JOIN,数据长度：%d\n", _sock, userjoin->dataLength);
+				NewUserJoin* userJoin = (NewUserJoin*)header;
+				//printf("<socket=%d>收到服务端消息：CMD_NEW_USER_JOIN,数据长度：%d\n", _sock, userJoin->dataLength);
 			}
 			break;
 			case CMD_ERROR:
@@ -225,10 +246,8 @@ public:
 		}
 		return ret;
 	}
-
-
+private:
 
 };
 
-
-#endif // !_EasyTcpClient_hpp_
+#endif
